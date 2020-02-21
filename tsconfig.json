@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "outDir": "dist",
+    "module": "commonjs",
+    "inlineSourceMap": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "pretty": true
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/__tests__"
+  ]
+}
