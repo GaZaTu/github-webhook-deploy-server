@@ -4,7 +4,7 @@ import * as Koa from 'koa'
 import * as KoaRouter from 'koa-router'
 import * as cors from '@koa/cors'
 import * as jsonError from 'koa-json-error'
-// import * as bodyparser from 'koa-bodyparser'
+import * as bodyparser from 'koa-bodyparser'
 import * as config from 'config'
 import * as crypto from 'crypto'
 import { exec } from 'child_process'
@@ -39,7 +39,7 @@ const createKoa = (middlewares: Koa.Middleware<any, any>[]) => {
     }),
   }))
 
-  // koa.use(bodyparser())
+  koa.use(bodyparser())
 
   for (const middleware of middlewares) {
     koa.use(middleware)
@@ -98,19 +98,29 @@ const registerRoutes = (router: KoaRouter) => {
     const actualSignature = ctx.headers['x-hub-signature']
     const expectedSignature = `${algorithm}=${
       crypto.createHmac(algorithm, config.get('secret'))
-        .update(ctx.body)
+        .update(ctx.request.rawBody)
         .digest('hex')
       }`
 
-    const payload = JSON.parse(ctx.body) as Payload | undefined
+    const payload = JSON.parse(ctx.request.rawBody) as Payload | undefined
     const application = applications.get(payload?.repository?.full_name!)
 
     const isValidSignature = actualSignature === expectedSignature
     const isValidRef = payload?.ref === application?.ref
 
     if (application && isValidSignature && isValidRef) {
-      await promisify(exec)(application.command, { cwd: application.localPath })
+      console.log(`exec('${application.command}')`)
+
+      const { stdout, stderr } = await promisify(exec)(application.command, {
+        cwd: application.localPath,
+      })
+
+      console.info(stdout)
+      console.error(stderr)
     }
+
+    ctx.response.type = 'application/json'
+    ctx.response.body = {}
   })
 }
 
