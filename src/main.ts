@@ -9,6 +9,7 @@ import * as config from 'config'
 import * as crypto from 'crypto'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { readFileSync } from 'fs'
 
 const createRouter = (registerRoutes: (router: KoaRouter) => void) => {
   const router = new KoaRouter()
@@ -53,7 +54,13 @@ const createHttpServer = (callback: (req: http.IncomingMessage | http2.Http2Serv
   let server!: http.Server | http2.Http2SecureServer
 
   if (config.has('httpsConfig')) {
-    const httpsConfig = Object.assign({}, config.get('httpsConfig'), { allowHTTP1: true })
+    const httpsConfigSource = config.get('httpsConfig') as any
+    const httpsConfig = {
+      allowHTTP1: true,
+      key: readFileSync(httpsConfigSource.keyPath),
+      cert: readFileSync(httpsConfigSource.certPath),
+      ca: [readFileSync(httpsConfigSource.caPath)],
+    }
 
     server = http2.createSecureServer(httpsConfig, callback)
   } else {
