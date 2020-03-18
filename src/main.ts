@@ -93,7 +93,9 @@ const registerRoutes = (router: KoaRouter) => {
   const applications = config.get<Application[]>('applications')
     .reduce((map, app) => { map.set(app.remotePath, app); return map; }, new Map<string, Application>())
 
-  router.post('/handle', async ctx => {
+  router.post('/handle', ctx => {
+    let status = 'IGNORE'
+
     const algorithm = 'sha1'
     const actualSignature = ctx.headers['x-hub-signature']
     const expectedSignature = `${algorithm}=${
@@ -109,18 +111,22 @@ const registerRoutes = (router: KoaRouter) => {
     const isValidRef = payload?.ref === application?.ref
 
     if (application && isValidSignature && isValidRef) {
-      console.log(`exec('${application.command}')`)
+      status = 'UPDATE'
 
-      const { stdout, stderr } = await promisify(exec)(application.command, {
-        cwd: application.localPath,
-      })
+      ; (async () => {
+        console.log(`exec('${application.command}')`)
 
-      console.info(stdout)
-      console.error(stderr)
+        const { stdout, stderr } = await promisify(exec)(application.command, {
+          cwd: application.localPath,
+        })
+
+        console.info(stdout)
+        console.error(stderr)
+      })()
     }
 
     ctx.response.type = 'application/json'
-    ctx.response.body = {}
+    ctx.response.body = { status }
   })
 }
 
