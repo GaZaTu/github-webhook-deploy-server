@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@koa/cors": "^2.2.3",
-    "config": "^3.2.5",
+    "config": "^3.3.8",
     "koa": "^2.11.0",
     "koa-bodyparser": "^4.2.1",
     "koa-json-error": "^3.1.2",
